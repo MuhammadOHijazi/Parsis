@@ -1,3 +1,4 @@
+![image](https://github.com/MuhammadOHijazi/Parsis/assets/110887902/3bada7ae-e58b-430c-81d1-1c04235e2491)
 Burgis is a popular two-player game with Indian origins, known in the country's heritage
 The Levant, where the Syrians introduced it to the region at the beginning of the twentieth century.
 The bergis consist of a piece of cloth, often black, on which there is embroidery
