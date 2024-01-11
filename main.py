@@ -1,7 +1,8 @@
 import state
-import random
 
 print("Start Parses game")
-state.create_board()
 
 
+from state import State
+st = State()
+State.crea(st)
