@@ -222,17 +222,15 @@ class State:
                 print(number_of_moves)
                 check = False
                 if turn == 0:
-                    check, self.enemy_path_list, self.my_stones = self.get_move(stone_id, number_of_moves,
-                                                                                self.my_path_list, self.enemy_path_list,
-                                                                                self.enemy_stones)
+                    check = self.get_move(stone_id, number_of_moves, self.my_path_list, self.enemy_path_list,
+                                          turn)
                     self.create_board()
                     print(check)
                     if check:
                         throws_list.pop(throw_index)
                 else:
-                    check, self.enemy_path_list, self.my_stones = \
-                        self.get_move(stone_id, number_of_moves, self.enemy_path_list, self.my_path_list,
-                                      self.my_stones)
+                    check = self.get_move(stone_id, number_of_moves, self.enemy_path_list, self.my_path_list,
+                                          turn)
                     self.create_board()
                     print(check)
                     if check:
@@ -241,7 +239,7 @@ class State:
                 print("You don't have stones to move")
                 break
 
-    def get_move(self, stone_id, number_of_moves, my_path_list, enemy_path_list, enemystones):
+    def get_move(self, stone_id, number_of_moves, my_path_list, enemy_path_list, turn):
         old_place = 0
         for i in range(83):
             stones = my_path_list[i].stone_list
@@ -268,12 +266,12 @@ class State:
                     if len(enemy_path_list[i].stone_list) > 0:
                         print("Sorry you can not move to this place")
                         print("try to choose a different stone")
-                        return False, enemy_path_list, enemystones
+                        return False
                     else:
                         self.move_stone(stone_id, old_place, new_place, my_path_list)
-                        return True, enemy_path_list, enemystones
+                        return True
         else:
-            print("There is no X in our way")
+            print("There is no X we can stand on")
             x = my_path_list[new_place].place[0]
             y = my_path_list[new_place].place[1]
             for i in range(83):
@@ -285,19 +283,20 @@ class State:
                     stones = enemy_path_list[i].stone_list
                     if len(stones) > 0:
                         print("There is an stones of our enemy we will remove it")
-                        enemy_path_list, enemystones = self.remove_stone(enemy_path_list, new_place, enemystones)
+                        check = self.remove_stone(turn, new_place)
+                        print("The state of delete a stone is: ", check)
                         self.move_stone(stone_id, old_place, new_place, my_path_list)
-                        return True, enemy_path_list, enemystones
+                        return True
                     else:
                         print("oops..., there is no enemy here")
                         self.move_stone(stone_id, old_place, new_place, my_path_list)
-                        return True, enemy_path_list, enemystones
-                else:
-                    print("it seems that this a single path for you only")
-                    self.move_stone(stone_id, old_place, new_place, my_path_list)
-                    return True, enemy_path_list, enemystones
+                        return True
+            else:
+                print("it's clear")
+                self.move_stone(stone_id, old_place, new_place, my_path_list)
+                return True
 
-        return False, enemy_path_list, enemystones
+        return False
 
     def move_stone(self, stone_id, old_place, new_place, my_path_list):
         old_stones = my_path_list[old_place].stone_list
@@ -311,10 +310,49 @@ class State:
         my_path_list[new_place].stone_list = new_stones
         return True
 
-    def remove_stone(self, enemy_path_list, place, enemystones):
-        stones = enemy_path_list[place].stone_list
-        for stone in stones:
-            enemystones.append(stone)
-            stones.pop()
-        enemy_path_list[place].stone_list = stones
-        return enemy_path_list, enemystones
+    def remove_stone(self, turn, place):
+        if turn == 0:
+            stones = self.enemy_path_list[place].stone_list
+            enemy_stones = self.enemy_stones
+            for stone in stones:
+                enemy_stones.append(stone)
+            self.enemy_path_list[place].stone_list = []
+            self.enemy_stones = enemy_stones
+            return True
+        else:
+            stones = self.my_path_list[place].stone_list
+            my_stones = self.my_stones
+            for stone in stones:
+                my_stones.append(stone)
+            self.my_path_list[place].stone_list = []
+            self.my_stones = my_stones
+            return True
+
+
+"""
+    def add_stone(self, turn):
+        if turn == 0:
+            if len(self.my_stones) > 0:
+                stones = self.my_path_list[0].stone_list
+                stone = self.my_stones.pop(0)
+                stones.append(stone)
+                for stone in stones:
+                    print(stone)
+                self.my_path_list[0].stone_list = stones
+                return True
+            else:
+                print("There is no more stones to add")
+                return False
+        else:
+            if len(self.enemy_stones) > 0:
+                stones = self.enemy_path_list[0].stone_list
+                stone = self.enemy_stones.pop(0)
+                stones.append(stone)
+                for stone in stones:
+                    print(stone)
+                self.enemy_path_list[0].stone_list = stones
+                return True
+            else:
+                print("There is no more stones to add")
+                return False
+"""
