@@ -249,7 +249,6 @@ def getindex(enemy_path_list, my_path_list):
     # 82
     enemy_path_list[82].place = [7, 9]
     my_path_list[82].place = [11, 9]
-
     # 83 in the kitchen
     enemy_path_list[83].place = [8, 9]
     my_path_list[83].place = [10, 9]

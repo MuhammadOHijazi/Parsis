@@ -1,6 +1,7 @@
 import random
 from cell import Cell
 from getindex import getindex
+from stone import Stone
 
 
 class State:
@@ -8,9 +9,11 @@ class State:
         # self.state = state
         self.my_path_list = []
         self.enemy_path_list = []
+        self.my_stones = []
+        self.enemy_stones = []
         self.parent = ""
 
-    def initialize_paths(self):
+    def initialize_game(self):
         for i in range(84):
             self.my_path_list.append(Cell())
             self.enemy_path_list.append(Cell())
@@ -20,42 +23,50 @@ class State:
             else:
                 self.my_path_list[i].is_x = False
                 self.enemy_path_list[i].is_x = False
-
-    def get_index(self):
         self.enemy_path_list, self.my_path_list = getindex(self.enemy_path_list, self.my_path_list)
+        for i in range(4):
+            self.my_stones.append(Stone(id=i, start=True, finish=False, shape="H", place=[18, i]))
+        for i in range(4):
+            self.enemy_stones.append(Stone(id=i, start=True, finish=False, shape="P", place=[0, i]))
+
 
     # testing Function
-    def create(self):
-        self.initialize_paths()
-        self.get_index()
-        # # Testing:
-        # for i in range(84):
-        #     print(self.enemy_path_list[i].place)
-        # print("\n------------------------------------------\n")
-        # for i in range(84):
-        #     print(self.my_path_list[i].place)
-
+    def create_board(self):
+        self.initialize_game()
         board = [[" " for _ in range(19)] for _ in range(19)]
         for k in range(len(self.my_path_list)):
             for i in range(19):
                 for j in range(19):
-                    x = self.my_path_list[k].place[0]
-                    y = self.my_path_list[k].place[1]
-                    if i == x and j == y:
-                        pr = str(k)
-                        board[i][j] = pr
-                    if (i == 8 and (j == 8 or j == 9 or j == 10)) or (i == 9 and (j == 8 or j == 9 or j == 10)) or (
-                            i == 10 and (j == 8 or j == 9 or j == 10)):
-                        board[i][j] = '#'
-                    if ((i == 2 or i == 16) and (j == 8 or j == 10)) or ((j == 2 or j == 16) and (i == 8 or i == 10)):
-                        board[i][j] = 'X'
+                    for stone in range(len(self.enemy_stones)):
+                        x = self.enemy_stones[stone].place[0]
+                        y = self.enemy_stones[stone].place[1]
+                        if x == i and y == j:
+                            board[i][j] = self.enemy_stones[stone].shape
+                    for stone in range(len(self.my_stones)):
+                        x = self.my_stones[stone].place[0]
+                        y = self.my_stones[stone].place[1]
+                        if x == i and y == j:
+                            board[i][j] = self.my_stones[stone].shape
+
+                        if 7 < i < 11 or 7 < j < 11:
+                            board[i][j] = "_"
+                        if (i == 8 and (j == 8 or j == 9 or j == 10)) or (i == 9 and (j == 8 or j == 9 or j == 10)) or (
+                                i == 10 and (j == 8 or j == 9 or j == 10)):
+                            board[i][j] = '#'
+                        if ((i == 2 or i == 16) and (j == 8 or j == 10)) or ((j == 2 or j == 16) and (i == 8 or i == 10)):
+                            board[i][j] = 'X'
 
         for row in board:
-            row = ["\t" if cell == 0 else cell for cell in row]
+            row = [" " if cell == 0 else cell for cell in row]
             print("\t".join(row))
 
+    def add_stone(self, path_list=[], stone_list=[]):
+        stone = stone_list.pop(0)
+        path_list[0].stone_list.append(stone)
+        return True
+
     def is_finish(self):
-        if (len(self.my_path_list[-1].stone_list) == 4) or (len(self.enemy_path_list[-1].stone_list) == 4):
+        if (len(self.my_path_list[83].stone_list) == 4) or (len(self.enemy_path_list[83].stone_list) == 4):
             return True
         else:
             return False
@@ -75,6 +86,7 @@ class State:
         totalmoves = 0
         repetition = True
         Khal = 0
+        name_of_move = " "
         ans = []
         while repetition:
             repetition = False
@@ -107,10 +119,9 @@ class State:
             totalmoves += number_of_moves
             for i in throws_types:
                 if number_of_moves == i:
-                    print(throws_types[i][0])
+                    name_of_move = throws_types[i][0]
                     Khal += throws_types[i][1]
                     repetition = throws_types[i][2]
                     break
-            ans.append((number_of_moves, Khal))
-            print(number_of_moves, Khal)
+            ans.append((number_of_moves, Khal, name_of_move))
         return ans, totalmoves, Khal
