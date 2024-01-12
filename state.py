@@ -132,35 +132,92 @@ class State:
                     Khal += throws_types[i][1]
                     repetition = throws_types[i][2]
                     break
-            ans.append((number_of_moves, Khal, name_of_move))
+            ans.append([number_of_moves, Khal, name_of_move])
         return ans, totalmoves, Khal
 
-    def action(self):
-        counter = 0
-        turn = 0
-        if counter % 2 == 0:
-            print("It's the first player turn")
-            turn = 0
+    def action(self, turn):
+        throws_list, totalmoves, Khal = self.throwing()
+        counter_of_id_throw_list = 0
+        for i in throws_list:
+            print("id of throw is: ", counter_of_id_throw_list, "you get:\t", i[2])
+            print("id of throw is: ", counter_of_id_throw_list, "You can move: \t", i[0])
+            print("id of throw is: ", counter_of_id_throw_list, "the number of khal you can get from this: \t", i[1])
+            counter_of_id_throw_list += 1
+        while len(throws_list) > 0:
+            if Khal > 0:
+                print("You can get a stone")
+                isKhal = int(input("Do you want to add in this turn ? 0 for No\t 1 for Yes\t"))
+                if isKhal == 1:
+                    if turn == 0:
+                        self.add_stone(self.my_path_list, self.my_stones)
+                        self.create_board()
+                    elif turn == 1:
+                        self.add_stone(self.enemy_path_list, self.enemy_stones)
+                        self.create_board()
+            stone_id = int(input("Enter the id of stone to move"))
+            throw_index = int(input("Enter the id of the throw you want to take for this stone"))
+            throw = throws_list[throw_index]
+            number_of_moves = throw[0]
+            print(number_of_moves)
+            if turn = 0:
+                check = self.get_move(stone_id, number_of_moves, self.my_path_list, self.enemy_path_list,
+                                      self.enemy_stones)
+                if check:
+                    throws_list.pop(throw_index)
+                else:
+                    continue
+            else:
+                check = self.get_move(stone_id, number_of_moves, self.enemy_path_list, self.my_path_list,
+                                      self.my_stones)
+                if check:
+                    throws_list.pop(throw_index)
+                else:
+                    continue
+
+    def get_move(self, stone_id, number_of_moves, my_path_list, enemy_path_list, enemystones):
+        old_place = 0
+        for i in range(83):
+            if my_path_list[i].stone_list.id == stone_id:
+                old_place = i
+                break
+        new_place = old_place + number_of_moves
+        # check that you can move to this point
+        if my_path_list[new_place].is_x:
+            x = my_path_list[new_place].place[0]
+            y = my_path_list[new_place].place[1]
+            for i in range(83):
+                n = enemy_path_list[i].place[0]
+                m = enemy_path_list[i].place[1]
+                if x == n and y == m:
+                    if len(enemy_path_list[i].stone_list) > 0:
+                        print("Sorry you can not move to this place")
+                        print("try to choose a different stone")
+                        return False
+                    else:
+                        self.move_stone(stone_id, old_place, new_place, my_path_list)
+                        return True
         else:
-            print("It's the second player turn")
-            turn = 1
-        ans, totalmoves, Khal = self.throwing()
-        print(ans)
-        for i in ans:
-            print("you get:\t", i[2])
-            print("You can move: \t", i[0])
-            print("the number of khal you can get from this: \t", i[1])
-        stones_can_move = []
-        if Khal > 0:
-            print("You can get a stone")
-            isKhal = int(input("Do you want to add in this turn ? 0 for No\t 1 for Yes\t"))
-            if isKhal == 1:
-                if turn == 0:
-                    self.add_stone(self.my_path_list, self.my_stones)
-                    print(len(self.my_stones))
-                    self.create_board()
-                    print("\n\n")
-                # elif turn == 1:
-                #     self.add_stone(self.enemy_path_list, self.enemy_stones)
-                #     self.create_board()
-                #     print("\n\n")
+            x = my_path_list[new_place].place[0]
+            y = my_path_list[new_place].place[1]
+            for i in range(83):
+                n = enemy_path_list[i].place[0]
+                m = enemy_path_list[i].place[1]
+                if x == n and y == m:
+                    if len(enemy_path_list[i].stone_list) > 0:
+                        self.remove_stone(enemy_path_list, new_place, enemystones)
+                        self.move_stone(stone_id, old_place, new_place, my_path_list)
+                        return True
+
+    def move_stone(self, stone_id, old_place, new_place, my_path_list):
+        stones = my_path_list[old_place].stone_list
+        for stone in stones:
+            if stone.id == stone_id:
+                my_path_list[new_place].stone_list.append(stone)
+                my_path_list[old_place].stone_list.pop(stone)
+                return True
+
+    def remove_stone(self, enemy_path_list, place, enemystones):
+        stones = enemy_path_list[place].stone_list
+        for stone in stones:
+            enemystones.append(stone)
+            stones.pop(stone)
