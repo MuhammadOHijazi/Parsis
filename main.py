@@ -1,8 +1,6 @@
 import state
+from state import State
 
 print("Start Parses game")
-
-
-from state import State
 st = State()
-State.crea(st)
+State.create(st)

@@ -1,5 +1,6 @@
 import random
 from cell import Cell
+from getindex import getindex
 
 
 class State:
@@ -10,7 +11,7 @@ class State:
         self.parent = ""
 
     def initialize_paths(self):
-        for i in range(83):
+        for i in range(84):
             self.my_path_list.append(Cell())
             self.enemy_path_list.append(Cell())
             if i == 10 or i == 21 or i == 27 or i == 38 or i == 44 or i == 55 or i == 61 or i == 72:
@@ -19,6 +20,45 @@ class State:
             else:
                 self.my_path_list[i].is_x = False
                 self.enemy_path_list[i].is_x = False
+
+    def get_index(self):
+        self.enemy_path_list, self.my_path_list = getindex(self.enemy_path_list, self.my_path_list)
+
+    # testing Function
+    def create(self):
+        self.initialize_paths()
+        self.get_index()
+        # # Testing:
+        # for i in range(84):
+        #     print(self.enemy_path_list[i].place)
+        # print("\n------------------------------------------\n")
+        # for i in range(84):
+        #     print(self.my_path_list[i].place)
+
+        board = [[" " for _ in range(19)] for _ in range(19)]
+        for k in range(len(self.my_path_list)):
+            for i in range(19):
+                for j in range(19):
+                    x = self.my_path_list[k].place[0]
+                    y = self.my_path_list[k].place[1]
+                    if i == x and j == y:
+                        pr = str(k)
+                        board[i][j] = pr
+                    if (i == 8 and (j == 8 or j == 9 or j == 10)) or (i == 9 and (j == 8 or j == 9 or j == 10)) or (
+                            i == 10 and (j == 8 or j == 9 or j == 10)):
+                        board[i][j] = '#'
+                    if ((i == 2 or i == 16) and (j == 8 or j == 10)) or ((j == 2 or j == 16) and (i == 8 or i == 10)):
+                        board[i][j] = 'X'
+
+        for row in board:
+            row = ["\t" if cell == 0 else cell for cell in row]
+            print("\t".join(row))
+
+    def is_finish(self):
+        if (len(self.my_path_list[-1].stone_list) == 4) or (len(self.enemy_path_list[-1].stone_list) == 4):
+            return True
+        else:
+            return False
 
     def throwing(self):
         # (number_of_moves): (name of move,is khal or not, throw again or not)
@@ -35,6 +75,7 @@ class State:
         totalmoves = 0
         repetition = True
         Khal = 0
+        ans = []
         while repetition:
             repetition = False
             values = ["upper", "lower"]
@@ -70,101 +111,6 @@ class State:
                     Khal += throws_types[i][1]
                     repetition = throws_types[i][2]
                     break
+            ans.append((number_of_moves, Khal))
             print(number_of_moves, Khal)
-        return totalmoves, Khal
-
-    # define the paths with indexies of two dimention array
-    def get_index(self):
-        for i in range(83):
-            for k in range(0, 8):
-                for j in range(0, 8):
-                    if 0 <= i <= 7:
-                        self.enemy_path_list[i].index = (7 - k, 9)
-                        self.my_path_list[i].index = (k + 11, 9)
-                    if 8 <= i <= 15:
-                        self.enemy_path_list[i].index = (k, 8)
-                        self.my_path_list[i].index = (18 - k, 10)
-                    if 16 <= i <= 23:
-                        self.enemy_path_list[i].index = (8, 7 - j)
-                        self.my_path_list[i].index = (10, j + 11)
-
-                    if i == 24:
-                        self.enemy_path_list[i].index = (9, 0)
-                        self.my_path_list[i].index = (9, 18)
-
-                    if 25 <= i <= 32:
-                        self.enemy_path_list[i].index = (10, j)
-                        self.my_path_list[i].index = (8, 18 - j)
-                    if 33 <= i <= 40:
-                        self.enemy_path_list[i].index = (k + 11, 8)
-                        self.my_path_list[i].index = (7 - k, 10)
-
-                    if i == 41:
-                        self.enemy_path_list[i].index = (18, 9)
-                        self.my_path_list[i].index = (0, 9)
-
-                    if 42 <= i <= 49:
-                        self.enemy_path_list[i].index = (18 - k, 10)
-                        self.my_path_list[i].index = (k, 8)
-                    if 50 <= i <= 57:
-                        self.enemy_path_list[i].index = (10, j + 11)
-                        self.my_path_list[i].index = (8, 7 - j)
-
-                    if i == 58:
-                        self.enemy_path_list[i].index = (9, 18)
-                        self.my_path_list[i].index = (9, 0)
-
-                    if 59 <= i <= 66:
-                        self.enemy_path_list[i].index = (8, 18 - j)
-                        self.my_path_list[i].index = (10, j)
-                    if 67 <= i <= 74:
-                        self.enemy_path_list[i].index = (7 - k, 10)
-                        self.my_path_list[i].index = (k + 11, 8)
-                    if 75 <= i <= 82:
-                        self.enemy_path_list[i].index = (k, 9)
-                        self.my_path_list[i].index = (18 - k, 9)
-
-    # testing Function
-    def crea(self):
-        self.initialize_paths()
-        self.get_index()
-        board = [[0 for _ in range(19)] for _ in range(19)]
-        for k in self.my_path_list:
-            x = self.my_path_list[k].index[0]
-            y = self.my_path_list[k].index[1]
-            for i in range(19):
-                for j in range(19):
-                    if i == x and j == y:
-                        board[i][j] = k
-
-        for row in board:
-            row = [" " if cell == -1 else cell for cell in row]
-            print(" ".join(row))
-
-    def is_finish(self):
-        if (len(self.my_path_list[-1].stone_list) == 4) or (len(self.enemy_path_list[-1].stone_list) == 4):
-            return True
-        else:
-            return False
-
-
-def create_board():
-    board = [[" " for _ in range(19)] for _ in range(19)]
-    for i in range(19):
-        for j in range(19):
-            # game cell
-            if 7 < i < 11 or 7 < j < 11:
-                board[i][j] = '_'
-            # X Cell
-            if ((i == 2 or i == 16) and (j == 8 or j == 10)) or ((j == 2 or j == 16) and (i == 8 or i == 10)):
-                board[i][j] = 'X'
-            # Kitchen Cell
-            if (i == 8 and (j == 8 or j == 9 or j == 10)) or (i == 9 and (j == 8 or j == 9 or j == 10)) or (
-                    i == 10 and (j == 8 or j == 9 or j == 10)):
-                board[i][j] = '#'
-    # Print the board row by row
-    for row in board:
-        row = [" " if cell == 0 else cell for cell in row]
-        print(" ".join(row))
-
-
+        return ans, totalmoves, Khal
