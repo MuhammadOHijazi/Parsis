@@ -29,10 +29,9 @@ class State:
         for i in range(4):
             self.enemy_stones.append(Stone(id=i, start=True, finish=False, shape="P", place=[0, i]))
 
-
-    # testing Function
+    # the print function will show the multi stone in the same cell as follows:
+    # (number of stones)(shape)(id)
     def create_board(self):
-        self.initialize_game()
         board = [[" " for _ in range(19)] for _ in range(19)]
         for k in range(len(self.my_path_list)):
             for i in range(19):
@@ -47,20 +46,30 @@ class State:
                         y = self.my_stones[stone].place[1]
                         if x == i and y == j:
                             board[i][j] = self.my_stones[stone].shape
-
-                        if 7 < i < 11 or 7 < j < 11:
-                            board[i][j] = "_"
-                        if (i == 8 and (j == 8 or j == 9 or j == 10)) or (i == 9 and (j == 8 or j == 9 or j == 10)) or (
-                                i == 10 and (j == 8 or j == 9 or j == 10)):
-                            board[i][j] = '#'
-                        if ((i == 2 or i == 16) and (j == 8 or j == 10)) or ((j == 2 or j == 16) and (i == 8 or i == 10)):
-                            board[i][j] = 'X'
+                    if 7 < i < 11 or 7 < j < 11:
+                        board[i][j] = "_"
+                    if (i == 8 and (j == 8 or j == 9 or j == 10)) or (i == 9 and (j == 8 or j == 9 or j == 10)) or (
+                            i == 10 and (j == 8 or j == 9 or j == 10)):
+                        board[i][j] = "#"
+                    if ((i == 2 or i == 16) and (j == 8 or j == 10)) or (
+                            (j == 2 or j == 16) and (i == 8 or i == 10)):
+                        board[i][j] = "X"
+        for i in range(83):
+            if len(self.my_path_list[i].stone_list) != 0:
+                x = self.my_path_list[i].place[0]
+                y = self.my_path_list[i].place[1]
+                counter = len(self.my_path_list[i].stone_list)
+                pr_counter = str(counter)
+                shape = self.my_path_list[i].stone_list[0].shape
+                ids = str(self.my_path_list[i].stone_list[0].id)
+                board[x][y] = pr_counter + shape + ids
+                break
 
         for row in board:
             row = [" " if cell == 0 else cell for cell in row]
             print("\t".join(row))
 
-    def add_stone(self, path_list=[], stone_list=[]):
+    def add_stone(self, path_list, stone_list):
         stone = stone_list.pop(0)
         path_list[0].stone_list.append(stone)
         return True
@@ -125,3 +134,33 @@ class State:
                     break
             ans.append((number_of_moves, Khal, name_of_move))
         return ans, totalmoves, Khal
+
+    def action(self):
+        counter = 0
+        turn = 0
+        if counter % 2 == 0:
+            print("It's the first player turn")
+            turn = 0
+        else:
+            print("It's the second player turn")
+            turn = 1
+        ans, totalmoves, Khal = self.throwing()
+        print(ans)
+        for i in ans:
+            print("you get:\t", i[2])
+            print("You can move: \t", i[0])
+            print("the number of khal you can get from this: \t", i[1])
+        stones_can_move = []
+        if Khal > 0:
+            print("You can get a stone")
+            isKhal = int(input("Do you want to add in this turn ? 0 for No\t 1 for Yes\t"))
+            if isKhal == 1:
+                if turn == 0:
+                    self.add_stone(self.my_path_list, self.my_stones)
+                    print(len(self.my_stones))
+                    self.create_board()
+                    print("\n\n")
+                # elif turn == 1:
+                #     self.add_stone(self.enemy_path_list, self.enemy_stones)
+                #     self.create_board()
+                #     print("\n\n")
