@@ -15,8 +15,8 @@ class State:
 
     def initialize_game(self):
         for i in range(84):
-            self.my_path_list.append(Cell())
-            self.enemy_path_list.append(Cell())
+            self.my_path_list.append(Cell(stone_list=[]))
+            self.enemy_path_list.append(Cell(stone_list=[]))
             if i == 10 or i == 21 or i == 27 or i == 38 or i == 44 or i == 55 or i == 61 or i == 72:
                 self.my_path_list[i].is_x = True
                 self.enemy_path_list[i].is_x = True
@@ -29,50 +29,87 @@ class State:
         for i in range(4):
             self.enemy_stones.append(Stone(id=i, start=True, finish=False, shape="P", place=[0, i]))
 
+    def print_stones_list(self, board):
+        for i in range(19):
+            for j in range(19):
+                for stone in range(len(self.enemy_stones)):
+                    x = self.enemy_stones[stone].place[0]
+                    y = self.enemy_stones[stone].place[1]
+                    if x == i and y == j:
+                        board[i][j] = self.enemy_stones[stone].shape
+                for stone in range(len(self.my_stones)):
+                    x = self.my_stones[stone].place[0]
+                    y = self.my_stones[stone].place[1]
+                    if x == i and y == j:
+                        board[i][j] = self.my_stones[stone].shape
+        return board
+
     # the print function will show the multi stone in the same cell as follows:
     # (number of stones)(shape)(id)
     def create_board(self):
         board = [[" " for _ in range(19)] for _ in range(19)]
-        for k in range(len(self.my_path_list)):
-            for i in range(19):
-                for j in range(19):
-                    for stone in range(len(self.enemy_stones)):
-                        x = self.enemy_stones[stone].place[0]
-                        y = self.enemy_stones[stone].place[1]
-                        if x == i and y == j:
-                            board[i][j] = self.enemy_stones[stone].shape
-                    for stone in range(len(self.my_stones)):
-                        x = self.my_stones[stone].place[0]
-                        y = self.my_stones[stone].place[1]
-                        if x == i and y == j:
-                            board[i][j] = self.my_stones[stone].shape
-                    if 7 < i < 11 or 7 < j < 11:
-                        board[i][j] = "_"
-                    if (i == 8 and (j == 8 or j == 9 or j == 10)) or (i == 9 and (j == 8 or j == 9 or j == 10)) or (
-                            i == 10 and (j == 8 or j == 9 or j == 10)):
-                        board[i][j] = "#"
-                    if ((i == 2 or i == 16) and (j == 8 or j == 10)) or (
-                            (j == 2 or j == 16) and (i == 8 or i == 10)):
-                        board[i][j] = "X"
+        board = self.print_stones_list(board)
+        stones = []
+        for i in range(19):
+            for j in range(19):
+                if 7 < i < 11 or 7 < j < 11:
+                    board[i][j] = "_"
+                if (i == 8 and (j == 8 or j == 9 or j == 10)) or (i == 9 and (j == 8 or j == 9 or j == 10)) \
+                        or (i == 10 and (j == 8 or j == 9 or j == 10)):
+                    board[i][j] = "#"
+                if ((i == 2 or i == 16) and (j == 8 or j == 10)) or (
+                        (j == 2 or j == 16) and (i == 8 or i == 10)):
+                    board[i][j] = "X"
         for i in range(83):
-            if len(self.my_path_list[i].stone_list) != 0:
+            stones = self.my_path_list[i].stone_list
+            if len(stones) > 0:
                 x = self.my_path_list[i].place[0]
                 y = self.my_path_list[i].place[1]
-                counter = len(self.my_path_list[i].stone_list)
+                counter = len(stones)
                 pr_counter = str(counter)
                 shape = self.my_path_list[i].stone_list[0].shape
                 ids = str(self.my_path_list[i].stone_list[0].id)
                 board[x][y] = pr_counter + shape + ids
-                break
 
+        for i in range(83):
+            stones = self.enemy_path_list[i].stone_list
+            if len(stones) > 0:
+                x = self.enemy_path_list[i].place[0]
+                y = self.enemy_path_list[i].place[1]
+                counter = len(stones)
+                pr_counter = str(counter)
+                shape = self.enemy_path_list[i].stone_list[0].shape
+                ids = str(stones[0].id)
+                board[x][y] = pr_counter + shape + ids
         for row in board:
             row = [" " if cell == 0 else cell for cell in row]
             print("\t".join(row))
 
-    def add_stone(self, path_list, stone_list):
-        stone = stone_list.pop(0)
-        path_list[0].stone_list.append(stone)
-        return True
+    def add_stone(self, turn):
+        if turn == 0:
+            if len(self.my_stones) > 0:
+                stones = self.my_path_list[0].stone_list
+                stone = self.my_stones.pop(0)
+                stones.append(stone)
+                for stone in stones:
+                    print(stone)
+                self.my_path_list[0].stone_list = stones
+                return True
+            else:
+                print("There is no more stones to add")
+                return False
+        else:
+            if len(self.enemy_stones) > 0:
+                stones = self.enemy_path_list[0].stone_list
+                stone = self.enemy_stones.pop(0)
+                stones.append(stone)
+                for stone in stones:
+                    print(stone)
+                self.enemy_path_list[0].stone_list = stones
+                return True
+            else:
+                print("There is no more stones to add")
+                return False
 
     def is_finish(self):
         if (len(self.my_path_list[83].stone_list) == 4) or (len(self.enemy_path_list[83].stone_list) == 4):
@@ -135,6 +172,21 @@ class State:
             ans.append([number_of_moves, Khal, name_of_move])
         return ans, totalmoves, Khal
 
+    def number_of_stones(self, turn):
+        num_of_stones = 0
+        stones = []
+        if turn == 0:
+            for i in range(83):
+                if len(self.my_path_list[i].stone_list) > 0:
+                    stones.append(self.my_path_list[i].stone_list)
+                    num_of_stones += len(self.my_path_list[i].stone_list)
+        else:
+            for i in range(83):
+                if len(self.enemy_path_list[i].stone_list) > 0:
+                    stones.append(self.enemy_path_list[i].stone_list)
+                    num_of_stones += len(self.enemy_path_list[i].stone_list)
+        return num_of_stones, stones
+
     def action(self, turn):
         throws_list, totalmoves, Khal = self.throwing()
         counter_of_id_throw_list = 0
@@ -144,45 +196,69 @@ class State:
             print("id of throw is: ", counter_of_id_throw_list, "the number of khal you can get from this: \t", i[1])
             counter_of_id_throw_list += 1
         while len(throws_list) > 0:
+            print(throws_list)
             if Khal > 0:
                 print("You can get a stone")
                 isKhal = int(input("Do you want to add in this turn ? 0 for No\t 1 for Yes\t"))
                 if isKhal == 1:
                     if turn == 0:
-                        self.add_stone(self.my_path_list, self.my_stones)
+                        self.add_stone(turn)
+                        Khal -= 1
                         self.create_board()
                     elif turn == 1:
-                        self.add_stone(self.enemy_path_list, self.enemy_stones)
+                        self.add_stone(turn)
                         self.create_board()
-            stone_id = int(input("Enter the id of stone to move"))
-            throw_index = int(input("Enter the id of the throw you want to take for this stone"))
-            throw = throws_list[throw_index]
-            number_of_moves = throw[0]
-            print(number_of_moves)
-            if turn = 0:
-                check = self.get_move(stone_id, number_of_moves, self.my_path_list, self.enemy_path_list,
-                                      self.enemy_stones)
-                if check:
-                    throws_list.pop(throw_index)
+                        Khal -= 1
                 else:
-                    continue
-            else:
-                check = self.get_move(stone_id, number_of_moves, self.enemy_path_list, self.my_path_list,
+                    # get the Khal move
+                    throws_list.append([Khal, 0, "Gift from the KHAL"])
+                    Khal = 0
+            num_of_stones, stones = self.number_of_stones(turn)
+            if num_of_stones > 0:
+                stone_id = int(input("Enter the id of stone to move"))
+                throw_index = int(input("Enter the id of the throw you want to take for this stone"))
+                throw = throws_list[throw_index]
+                number_of_moves = throw[0]
+                print(number_of_moves)
+                check = False
+                if turn == 0:
+                    check, self.enemy_path_list, self.my_stones = self.get_move(stone_id, number_of_moves,
+                                                                                self.my_path_list, self.enemy_path_list,
+                                                                                self.enemy_stones)
+                    self.create_board()
+                    print(check)
+                    if check:
+                        throws_list.pop(throw_index)
+                else:
+                    check, self.enemy_path_list, self.my_stones = \
+                        self.get_move(stone_id, number_of_moves, self.enemy_path_list, self.my_path_list,
                                       self.my_stones)
-                if check:
-                    throws_list.pop(throw_index)
-                else:
-                    continue
+                    self.create_board()
+                    print(check)
+                    if check:
+                        throws_list.pop(throw_index)
+            else:
+                print("You don't have stones to move")
+                break
 
     def get_move(self, stone_id, number_of_moves, my_path_list, enemy_path_list, enemystones):
         old_place = 0
         for i in range(83):
-            if my_path_list[i].stone_list.id == stone_id:
-                old_place = i
-                break
+            stones = my_path_list[i].stone_list
+            if len(stones) > 0:
+                for stone in stones:
+                    if stone.id == stone_id:
+                        old_place = i
+                        break
+            # else:
+            #     continue
         new_place = old_place + number_of_moves
+        if new_place > 83:
+            new_place = 83
+        print("new place", new_place)
         # check that you can move to this point
         if my_path_list[new_place].is_x:
+            print("This place has X")
             x = my_path_list[new_place].place[0]
             y = my_path_list[new_place].place[1]
             for i in range(83):
@@ -192,32 +268,53 @@ class State:
                     if len(enemy_path_list[i].stone_list) > 0:
                         print("Sorry you can not move to this place")
                         print("try to choose a different stone")
-                        return False
+                        return False, enemy_path_list, enemystones
                     else:
                         self.move_stone(stone_id, old_place, new_place, my_path_list)
-                        return True
+                        return True, enemy_path_list, enemystones
         else:
+            print("There is no X in our way")
             x = my_path_list[new_place].place[0]
             y = my_path_list[new_place].place[1]
             for i in range(83):
+                print("Check if there is no of enemy stones on our way")
                 n = enemy_path_list[i].place[0]
                 m = enemy_path_list[i].place[1]
                 if x == n and y == m:
-                    if len(enemy_path_list[i].stone_list) > 0:
-                        self.remove_stone(enemy_path_list, new_place, enemystones)
+                    print("here where you lost your focus and found the point")
+                    stones = enemy_path_list[i].stone_list
+                    if len(stones) > 0:
+                        print("There is an stones of our enemy we will remove it")
+                        enemy_path_list, enemystones = self.remove_stone(enemy_path_list, new_place, enemystones)
                         self.move_stone(stone_id, old_place, new_place, my_path_list)
-                        return True
+                        return True, enemy_path_list, enemystones
+                    else:
+                        print("oops..., there is no enemy here")
+                        self.move_stone(stone_id, old_place, new_place, my_path_list)
+                        return True, enemy_path_list, enemystones
+                else:
+                    print("it seems that this a single path for you only")
+                    self.move_stone(stone_id, old_place, new_place, my_path_list)
+                    return True, enemy_path_list, enemystones
+
+        return False, enemy_path_list, enemystones
 
     def move_stone(self, stone_id, old_place, new_place, my_path_list):
-        stones = my_path_list[old_place].stone_list
-        for stone in stones:
+        old_stones = my_path_list[old_place].stone_list
+        new_stones = my_path_list[new_place].stone_list
+        for stone in old_stones:
             if stone.id == stone_id:
-                my_path_list[new_place].stone_list.append(stone)
-                my_path_list[old_place].stone_list.pop(stone)
-                return True
+                new_stones.append(stone)
+                print(stone)
+                old_stones.remove(stone)
+        my_path_list[old_place].stone_list = old_stones
+        my_path_list[new_place].stone_list = new_stones
+        return True
 
     def remove_stone(self, enemy_path_list, place, enemystones):
         stones = enemy_path_list[place].stone_list
         for stone in stones:
             enemystones.append(stone)
-            stones.pop(stone)
+            stones.pop()
+        enemy_path_list[place].stone_list = stones
+        return enemy_path_list, enemystones
