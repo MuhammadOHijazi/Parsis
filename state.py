@@ -2,11 +2,12 @@ import random
 from cell import Cell
 from getindex import getindex
 from stone import Stone
+from copy import deepcopy
 
 
 class State:
-    def __init__(self, state):
-        self.state = state
+    def __init__(self, ):
+        # self.state = state
         self.my_path_list = []
         self.enemy_path_list = []
         self.my_stones = []
@@ -239,14 +240,14 @@ class State:
                 check = False
                 if turn == 0:
                     check = self.get_move(stone_id, number_of_moves, self.my_path_list, self.enemy_path_list,
-                                          turn)
+                                          self.enemy_stones)
                     self.create_board()
                     print(check)
                     if check:
                         throws_list.pop(throw_index)
                 else:
                     check = self.get_move(stone_id, number_of_moves, self.enemy_path_list, self.my_path_list,
-                                          turn)
+                                          self.my_stones)
                     self.create_board()
                     print(check)
                     if check:
@@ -256,7 +257,7 @@ class State:
                 break
 
     # check from any move that will happen
-    def get_move(self, stone_id, number_of_moves, my_path_list, enemy_path_list, turn):
+    def get_move(self, stone_id, number_of_moves, my_path_list, enemy_path_list, enemy_stones):
         old_place = 0
         for i in range(83):
             stones = my_path_list[i].stone_list
@@ -300,10 +301,10 @@ class State:
                     if len(stones) > 0:
                         check = False
                         print("There is an stones of our enemy we will remove it")
-                        # ---------------------------------------------------------------------#
+                        check = self.remove_stone(enemy_path_list, i, enemy_stones)
                         self.move_stone(stone_id, old_place, new_place, my_path_list)
-                        check = self.delete_stone(turn, new_place)
-                        print("The state of delete a stone is: ", check)
+                            # n,m = is the enemy place
+
                         return True
                     else:
                         print("oops..., there is no enemy here")
@@ -330,61 +331,9 @@ class State:
 
     # remove stone from the cell
     # هاد التابع ابن الستين كلب
-    def delete_stone(self, turn, new_place):
-        # add stone from my stone to the game
-        if turn == 0:
-            # first we will get our enemey lists
-            delete_stones = self.enemy_path_list[new_place].stone_list
-            returned_stone = self.enemy_stones
-            for stone in delete_stones:
-                returned_stone.insert(stone.id, stone)
-            # clear the list of stones
-            delete_stones.clear()
-            self.enemy_stones = returned_stone
-            self.enemy_path_list[new_place].stone_list = []
-            return True
-        else:
-            # first we will get our enemey lists
-            delete_stones = self.my_path_list[new_place].stone_list
-            returned_stone = self.my_stones
-            self.my_path_list[new_place].stone_list = []
-            for stone in delete_stones:
-                returned_stone.insert(stone.id, stone)
-            # clear the list of stones
-            delete_stones.clear()
-            self.my_stones = returned_stone
-            self.my_path_list[new_place].stone_list = []
-            return True
-
-
-"""
-    def remove_stone(self, turn, place):
-        if turn == 0:
-            stones = self.enemy_path_list[place].stone_list
-            enemy_stones = self.enemy_stones
-            for stone in stones:
-                enemy_stones.append(stone)
-                stones.remove(stone)
-            stones = []
-            self.enemy_path_list[place].stone_list = stones
-            self.enemy_stones = enemy_stones
-            for stone in stones:
-                print("Stone should be delete it so you should not see me", stone)
-            for stone in enemy_stones:
-                print("Stone should had new one on it ", stone)
-            return True, self.my_stones, enemy_stones, self.my_path_list[place].stone_list, stones
-        else:
-            stones = self.my_path_list[place].stone_list
-            my_stones = self.my_stones
-            for stone in stones:
-                my_stones.append(stone)
-                stones.remove(stone)
-            stones = []
-            self.my_path_list[place].stone_list = stones
-            self.my_stones = my_stones
-            for stone in stones:
-                print("Stone should be delete it ", stone)
-            for stone in my_stones:
-                print("Stone should had new one on it ", stone)
-            return True, my_stones, self.enemy_stones, stones, self.enemy_path_list[place].stone_list
-"""
+    def remove_stone(self, enemy_path_list, enemy_place, enemy_stones):
+        stones = enemy_path_list[enemy_place].stone_list
+        for stone in stones:
+            enemy_stones.insert(stone.id, stone)
+        enemy_path_list[enemy_place].stone_list = []
+        return True

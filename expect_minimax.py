@@ -18,4 +18,5 @@ def play_game():
             st.action(turn)
         order += 1
 
+
 play_game()
