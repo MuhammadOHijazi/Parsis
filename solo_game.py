@@ -1,10 +1,7 @@
 from state import State
 
 
-def play_game():
-    st = State()
-    st.initialize_game()
-    st.create_board()
+def play_game(st):
     order = 0
     turn = 0
     while True:
@@ -19,4 +16,3 @@ def play_game():
         order += 1
 
 
-play_game()

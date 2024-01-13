@@ -1,10 +1,7 @@
 from state import State
 
 
-def play_game_computer():
-    st = State()
-    st.initialize_game()
-    st.create_board()
+def play_game_computer(st):
     order = 0
     turn = 0
     while True:
@@ -14,7 +11,6 @@ def play_game_computer():
             st.action_solo(turn)
         else:
             print("It's the Computer turn")
-            st.action()
+            turn = 1
+            st.action(turn)
 
-
-play_game_computer()

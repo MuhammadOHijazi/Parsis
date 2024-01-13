@@ -6,13 +6,31 @@ from stone import Stone
 import math
 
 
+def initialize_game(my_path_list, enemy_path_list, my_stones, enemy_stones):
+    for i in range(84):
+        my_path_list.append(Cell(stone_list=[]))
+        enemy_path_list.append(Cell(stone_list=[]))
+        if i == 10 or i == 21 or i == 27 or i == 38 or i == 44 or i == 55 or i == 61 or i == 72:
+            my_path_list[i].is_x = True
+            enemy_path_list[i].is_x = True
+        else:
+            my_path_list[i].is_x = False
+            enemy_path_list[i].is_x = False
+    enemy_path_list, my_path_list = getindex(enemy_path_list, my_path_list)
+    for i in range(4):
+        my_stones.append(Stone(id=i, shape="H", place=[18, i]))
+    for i in range(4):
+        enemy_stones.append(Stone(id=i, shape="P", place=[0, i]))
+    return my_path_list, enemy_path_list, my_stones, enemy_stones
+
+
 class State:
     def __init__(self, state):
         self.state = state
-        self.my_path_list = []
-        self.enemy_path_list = []
-        self.my_stones = []
-        self.enemy_stones = []
+        self.my_path_list = state[0]
+        self.enemy_path_list = state[1]
+        self.my_stones = state[2]
+        self.enemy_stones = state[3]
         self.parent = ""
 
     def initialize_game(self):
@@ -27,9 +45,10 @@ class State:
                 self.enemy_path_list[i].is_x = False
         self.enemy_path_list, self.my_path_list = getindex(self.enemy_path_list, self.my_path_list)
         for i in range(4):
-            self.my_stones.append(Stone(id=i, start=True, finish=False, shape="H", place=[18, i]))
+            self.my_stones.append(Stone(id=i, shape="H", place=[18, i]))
         for i in range(4):
-            self.enemy_stones.append(Stone(id=i, start=True, finish=False, shape="P", place=[0, i]))
+            self.enemy_stones.append(Stone(id=i, shape="P", place=[0, i]))
+        return self.enemy_path_list, self.my_path_list, self.my_stones, self.enemy_stones
 
     def print_stones_list(self, board):
         for i in range(19):
@@ -100,6 +119,9 @@ class State:
                 for stone in stones:
                     print(stone)
                 self.my_path_list[0].stone_list = stones
+                # changing the values for the state
+                self.state[0] = self.my_path_list
+                self.state[2] = self.my_stones
                 return True
             else:
                 return False
@@ -112,6 +134,9 @@ class State:
                 for stone in stones:
                     print(stone)
                 self.enemy_path_list[0].stone_list = stones
+                # changing the values for the state
+                self.state[1] = self.enemy_path_list
+                self.state[3] = self.enemy_stones
                 return True
             else:
                 return False
@@ -261,14 +286,14 @@ class State:
                 check = False
                 if turn == 0:
                     check = self.get_move(stone_id, number_of_moves, self.my_path_list, self.enemy_path_list,
-                                          self.enemy_stones)
+                                          self.enemy_stones, turn)
                     self.create_board()
                     print(check)
                     if check:
                         throws_list.pop(throw_index)
                 else:
                     check = self.get_move(stone_id, number_of_moves, self.enemy_path_list, self.my_path_list,
-                                          self.my_stones)
+                                          self.my_stones, turn)
                     self.create_board()
                     print(check)
                     if check:
@@ -282,35 +307,14 @@ class State:
         # sort the throw list to for the next state
         throws_list.sort(key=lambda x: x[1], reverse=True)
         print(throws_list)
-        while len(throws_list) > 0:
-            num_of_stones, stones = self.number_of_stones(turn)
-            if num_of_stones > 0:
-                stone_id = int(input("Enter the id of stone to move"))
-                throw_index = int(input("Enter the id of the throw you want to take for this stone"))
-                throw = throws_list[throw_index]
-                number_of_moves = throw[0]
-                print(number_of_moves)
-                check = False
-                if turn == 0:
-                    check = self.get_move(stone_id, number_of_moves, self.my_path_list, self.enemy_path_list,
-                                          self.enemy_stones)
-                    self.create_board()
-                    print(check)
-                    if check:
-                        throws_list.pop(throw_index)
-                else:
-                    check = self.get_move(stone_id, number_of_moves, self.enemy_path_list, self.my_path_list,
-                                          self.my_stones)
-                    self.create_board()
-                    print(check)
-                    if check:
-                        throws_list.pop(throw_index)
-            else:
-                print("You don't have stones to move")
-                break
+        num_of_stones, stones = self.number_of_stones(turn)
+        if turn == 0:
+            states = self.get_next_state(throws_list, turn)
+        else:
+            states = self.get_next_state(throws_list, turn)
 
     # check from any move that will happen
-    def get_move(self, stone_id, number_of_moves, my_path_list, enemy_path_list, enemy_stones):
+    def get_move(self, stone_id, number_of_moves, my_path_list, enemy_path_list, enemy_stones, turn):
         old_place = 0
         for i in range(83):
             stones = my_path_list[i].stone_list
@@ -322,8 +326,9 @@ class State:
             # else:
             #     continue
         new_place = old_place + number_of_moves
-        if new_place > 83:
+        if new_place >= 83:
             new_place = 83
+
         print("new place", new_place)
         # check that you can move to this point
         if my_path_list[new_place].is_x:
@@ -339,7 +344,7 @@ class State:
                         print("try to choose a different stone")
                         return False
                     else:
-                        self.move_stone(stone_id, old_place, new_place, my_path_list)
+                        self.move_stone(stone_id, old_place, new_place, my_path_list, turn)
                         return True
         else:
             print("There is no X we can stand on")
@@ -354,24 +359,24 @@ class State:
                     if len(stones) > 0:
                         check = False
                         print("There is an stones of our enemy we will remove it")
-                        check = self.remove_stone(enemy_path_list, i, enemy_stones)
-                        self.move_stone(stone_id, old_place, new_place, my_path_list)
+                        check = self.remove_stone(enemy_path_list, i, enemy_stones, turn)
+                        self.move_stone(stone_id, old_place, new_place, my_path_list, turn)
                         # n,m = is the enemy place
 
                         return True
                     else:
                         print("oops..., there is no enemy here")
-                        self.move_stone(stone_id, old_place, new_place, my_path_list)
+                        self.move_stone(stone_id, old_place, new_place, my_path_list, turn)
                         return True
             else:
                 print("it's clear")
-                self.move_stone(stone_id, old_place, new_place, my_path_list)
+                self.move_stone(stone_id, old_place, new_place, my_path_list, turn)
                 return True
 
         return False
 
     # move stone from cell to another cell
-    def move_stone(self, stone_id, old_place, new_place, my_path_list):
+    def move_stone(self, stone_id, old_place, new_place, my_path_list, turn):
         old_stones = my_path_list[old_place].stone_list
         new_stones = my_path_list[new_place].stone_list
         for stone in old_stones:
@@ -380,15 +385,30 @@ class State:
                 old_stones.remove(stone)
         my_path_list[old_place].stone_list = old_stones
         my_path_list[new_place].stone_list = new_stones
+
+        # changing the values for the state
+        if turn == 0:
+            self.state[0] = my_path_list
+        else:
+            self.state[1] = my_path_list
         return True
 
     # remove stone from the cell
     # هاد التابع ابن الستين كلب
-    def remove_stone(self, enemy_path_list, enemy_place, enemy_stones):
+    def remove_stone(self, enemy_path_list, enemy_place, enemy_stones, turn):
         stones = enemy_path_list[enemy_place].stone_list
         for stone in stones:
             enemy_stones.insert(stone.id, stone)
         enemy_path_list[enemy_place].stone_list = []
+
+        if turn == 0:
+            # changing the values for the state
+            self.state[1] = enemy_path_list
+            self.state[3] = enemy_stones
+        else:
+            # changing the values for the state
+            self.state[0] = enemy_path_list
+            self.state[2] = enemy_stones
         return True
 
     def get_next_state(self, throw_list, turn):
@@ -403,7 +423,7 @@ class State:
                         for stone in stones:
                             new_state = copy.deepcopy(State(self.state))
                             new_state.get_move(stone, throw_list[throw[0]], self.my_path_list, self.enemy_path_list,
-                                               self.enemy_stones)
+                                               self.enemy_stones, turn)
                             new_throw_list = copy.deepcopy(throw_list)
                             new_throw_list.remove(throw)
                             current = new_state.get_next_state(new_throw_list, turn)
@@ -414,7 +434,7 @@ class State:
                             for stone in stones:
                                 new_state = copy.deepcopy(State(self.state))
                                 new_state.get_move(stone, throw_list[throw[0]], self.enemy_path_list, self.my_path_list,
-                                                   self.my_stones)
+                                                   self.my_stones, turn)
                                 new_throw_list = copy.deepcopy(throw_list)
                                 new_throw_list.remove(throw)
                                 current = new_state.get_next_state(new_throw_list, turn)
