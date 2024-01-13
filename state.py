@@ -5,8 +5,8 @@ from stone import Stone
 
 
 class State:
-    def __init__(self):
-        # self.state = state
+    def __init__(self, state):
+        self.state = state
         self.my_path_list = []
         self.enemy_path_list = []
         self.my_stones = []
@@ -60,17 +60,18 @@ class State:
                 if ((i == 2 or i == 16) and (j == 8 or j == 10)) or (
                         (j == 2 or j == 16) and (i == 8 or i == 10)):
                     board[i][j] = "X"
+        # print my stone in the game
         for i in range(83):
             stones = self.my_path_list[i].stone_list
             if len(stones) > 0:
                 x = self.my_path_list[i].place[0]
                 y = self.my_path_list[i].place[1]
-                counter = len(stones)
-                pr_counter = str(counter)
+                number_of_stones_in_cell = len(stones)
+                print_number_of_stones_in_cell = str(number_of_stones_in_cell)
                 shape = self.my_path_list[i].stone_list[0].shape
                 ids = str(self.my_path_list[i].stone_list[0].id)
-                board[x][y] = pr_counter + shape + ids
-
+                board[x][y] = print_number_of_stones_in_cell + shape + ids
+        # print enemy stone in the game
         for i in range(83):
             stones = self.enemy_path_list[i].stone_list
             if len(stones) > 0:
@@ -81,11 +82,14 @@ class State:
                 shape = self.enemy_path_list[i].stone_list[0].shape
                 ids = str(stones[0].id)
                 board[x][y] = pr_counter + shape + ids
+        # Draw
         for row in board:
             row = [" " if cell == 0 else cell for cell in row]
             print("\t".join(row))
 
+    # add stone to the game
     def add_stone(self, turn):
+        # add stone from my stone to the game
         if turn == 0:
             if len(self.my_stones) > 0:
                 stones = self.my_path_list[0].stone_list
@@ -96,9 +100,9 @@ class State:
                 self.my_path_list[0].stone_list = stones
                 return True
             else:
-                print("There is no more stones to add")
                 return False
         else:
+            # add stone from enemy stone to the game
             if len(self.enemy_stones) > 0:
                 stones = self.enemy_path_list[0].stone_list
                 stone = self.enemy_stones.pop(0)
@@ -108,9 +112,9 @@ class State:
                 self.enemy_path_list[0].stone_list = stones
                 return True
             else:
-                print("There is no more stones to add")
                 return False
 
+    # check if the game Has finsish with any player
     def is_finish(self):
         if (len(self.my_path_list[83].stone_list) == 4) or (len(self.enemy_path_list[83].stone_list) == 4):
             return True
@@ -172,6 +176,7 @@ class State:
             ans.append([number_of_moves, Khal, name_of_move])
         return ans, totalmoves, Khal
 
+    # count the nmber of stones in the game for the player in that turn
     def number_of_stones(self, turn):
         num_of_stones = 0
         stones = []
@@ -187,6 +192,7 @@ class State:
                     num_of_stones += len(self.enemy_path_list[i].stone_list)
         return num_of_stones, stones
 
+    # this function is just a way to organize the order of the action in the game
     def action(self, turn):
         throws_list, totalmoves, Khal = self.throwing()
         counter_of_id_throw_list = 0
@@ -202,13 +208,23 @@ class State:
                 isKhal = int(input("Do you want to add in this turn ? 0 for No\t 1 for Yes\t"))
                 if isKhal == 1:
                     if turn == 0:
-                        self.add_stone(turn)
-                        Khal -= 1
+                        check_add = self.add_stone(turn)
+                        if check_add:
+                            Khal -= 1
+                        else:
+                            print("There is no more stones to add")
+                            throws_list.append([Khal, 0, "Gift from the KHAL"])
+                            Khal = 0
                         self.create_board()
                     elif turn == 1:
-                        self.add_stone(turn)
+                        check_add = self.add_stone(turn)
+                        if check_add:
+                            Khal -= 1
+                        else:
+                            print("There is no more stones to add")
+                            throws_list.append([Khal, 0, "Gift from the KHAL"])
+                            Khal = 0
                         self.create_board()
-                        Khal -= 1
                 else:
                     # get the Khal move
                     throws_list.append([Khal, 0, "Gift from the KHAL"])
@@ -239,6 +255,7 @@ class State:
                 print("You don't have stones to move")
                 break
 
+    # check from any move that will happen
     def get_move(self, stone_id, number_of_moves, my_path_list, enemy_path_list, turn):
         old_place = 0
         for i in range(83):
@@ -275,17 +292,18 @@ class State:
             x = my_path_list[new_place].place[0]
             y = my_path_list[new_place].place[1]
             for i in range(83):
-                print("Check if there is no of enemy stones on our way")
                 n = enemy_path_list[i].place[0]
                 m = enemy_path_list[i].place[1]
                 if x == n and y == m:
                     print("here where you lost your focus and found the point")
                     stones = enemy_path_list[i].stone_list
                     if len(stones) > 0:
+                        check = False
                         print("There is an stones of our enemy we will remove it")
-                        check = self.remove_stone(turn, new_place)
-                        print("The state of delete a stone is: ", check)
+                        # ---------------------------------------------------------------------#
                         self.move_stone(stone_id, old_place, new_place, my_path_list)
+                        check = self.delete_stone(turn, new_place)
+                        print("The state of delete a stone is: ", check)
                         return True
                     else:
                         print("oops..., there is no enemy here")
@@ -298,61 +316,75 @@ class State:
 
         return False
 
+    # move stone from cell to another cell
     def move_stone(self, stone_id, old_place, new_place, my_path_list):
         old_stones = my_path_list[old_place].stone_list
         new_stones = my_path_list[new_place].stone_list
         for stone in old_stones:
             if stone.id == stone_id:
                 new_stones.append(stone)
-                print(stone)
                 old_stones.remove(stone)
         my_path_list[old_place].stone_list = old_stones
         my_path_list[new_place].stone_list = new_stones
         return True
 
+    # remove stone from the cell
+    # هاد التابع ابن الستين كلب
+    def delete_stone(self, turn, new_place):
+        # add stone from my stone to the game
+        if turn == 0:
+            # first we will get our enemey lists
+            delete_stones = self.enemy_path_list[new_place].stone_list
+            returned_stone = self.enemy_stones
+            for stone in delete_stones:
+                returned_stone.insert(stone.id, stone)
+            # clear the list of stones
+            delete_stones.clear()
+            self.enemy_stones = returned_stone
+            self.enemy_path_list[new_place].stone_list = []
+            return True
+        else:
+            # first we will get our enemey lists
+            delete_stones = self.my_path_list[new_place].stone_list
+            returned_stone = self.my_stones
+            self.my_path_list[new_place].stone_list = []
+            for stone in delete_stones:
+                returned_stone.insert(stone.id, stone)
+            # clear the list of stones
+            delete_stones.clear()
+            self.my_stones = returned_stone
+            self.my_path_list[new_place].stone_list = []
+            return True
+
+
+"""
     def remove_stone(self, turn, place):
         if turn == 0:
             stones = self.enemy_path_list[place].stone_list
             enemy_stones = self.enemy_stones
             for stone in stones:
                 enemy_stones.append(stone)
-            self.enemy_path_list[place].stone_list = []
+                stones.remove(stone)
+            stones = []
+            self.enemy_path_list[place].stone_list = stones
             self.enemy_stones = enemy_stones
-            return True
+            for stone in stones:
+                print("Stone should be delete it so you should not see me", stone)
+            for stone in enemy_stones:
+                print("Stone should had new one on it ", stone)
+            return True, self.my_stones, enemy_stones, self.my_path_list[place].stone_list, stones
         else:
             stones = self.my_path_list[place].stone_list
             my_stones = self.my_stones
             for stone in stones:
                 my_stones.append(stone)
-            self.my_path_list[place].stone_list = []
+                stones.remove(stone)
+            stones = []
+            self.my_path_list[place].stone_list = stones
             self.my_stones = my_stones
-            return True
-
-
-"""
-    def add_stone(self, turn):
-        if turn == 0:
-            if len(self.my_stones) > 0:
-                stones = self.my_path_list[0].stone_list
-                stone = self.my_stones.pop(0)
-                stones.append(stone)
-                for stone in stones:
-                    print(stone)
-                self.my_path_list[0].stone_list = stones
-                return True
-            else:
-                print("There is no more stones to add")
-                return False
-        else:
-            if len(self.enemy_stones) > 0:
-                stones = self.enemy_path_list[0].stone_list
-                stone = self.enemy_stones.pop(0)
-                stones.append(stone)
-                for stone in stones:
-                    print(stone)
-                self.enemy_path_list[0].stone_list = stones
-                return True
-            else:
-                print("There is no more stones to add")
-                return False
+            for stone in stones:
+                print("Stone should be delete it ", stone)
+            for stone in my_stones:
+                print("Stone should had new one on it ", stone)
+            return True, my_stones, self.enemy_stones, stones, self.enemy_path_list[place].stone_list
 """

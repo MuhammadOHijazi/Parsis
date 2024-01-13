@@ -1,24 +1,13 @@
 from state import State
+from solo_game import play_game
+print("Welcome to play Parsis game")
 
-print("Start Parsis game")
-st = State()
-st.initialize_game()
+choose = int(input("Choose to play \n 1 To play with Two Player\n 2 To play with the Computer\n"))
 
-
-def play_game():
-    st.create_board()
-    order = 0
-    turn = 0
-    while True:
-        if order % 2 == 0:
-            print("It's the first player turn")
-            turn = 0
-            st.action(turn)
-        else:
-            print("It's the second player turn")
-            turn = 1
-            st.action(turn)
-        order += 1
+if choose == 1:
+    play_game()
+elif choose == 2:
+    pass
 
 
-play_game()
+
