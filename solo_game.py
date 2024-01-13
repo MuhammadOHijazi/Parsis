@@ -11,11 +11,11 @@ def play_game():
         if order % 2 == 0:
             print("It's the first player turn")
             turn = 0
-            st.action(turn)
+            st.action_solo(turn)
         else:
             print("It's the second player turn")
             turn = 1
-            st.action(turn)
+            st.action_solo(turn)
         order += 1
 
 

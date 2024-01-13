@@ -1,13 +1,12 @@
 from cell import  Cell
+from state import State
 from stone import Stone
 
-s=Stone()
-
-c=Cell()
-c.stone_list.append(s)
-print(c.stone_list)
-c.stone_list.remove(s)
-print(c.stone_list)
-
-
+st = State()
+throws_list, totalmoves, Khal = st.throwing()
+while len(throws_list) < 10:
+    throws_list, totalmoves, Khal = st.throwing()
+    print(throws_list)
+    throws_list.sort(key=lambda x: x[1], reverse=True)
+    print(throws_list)
 

@@ -1,7 +1,7 @@
 from state import State
 
 
-def play_game():
+def play_game_computer():
     st = State()
     st.initialize_game()
     st.create_board()
@@ -11,12 +11,10 @@ def play_game():
         if order % 2 == 0:
             print("It's the first player turn")
             turn = 0
-            st.action(turn)
+            st.action_solo(turn)
         else:
             print("It's the Computer turn")
-            turn = 1
-            st.action(turn)
-        order += 1
+            st.action()
 
 
-play_game()
+play_game_computer()

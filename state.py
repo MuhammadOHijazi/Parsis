@@ -1,3 +1,4 @@
+import copy
 import random
 from cell import Cell
 from getindex import getindex
@@ -6,8 +7,8 @@ from copy import deepcopy
 
 
 class State:
-    def __init__(self, ):
-        # self.state = state
+    def __init__(self, state):
+        self.state = state
         self.my_path_list = []
         self.enemy_path_list = []
         self.my_stones = []
@@ -140,6 +141,7 @@ class State:
         name_of_move = " "
         ans = []
         while repetition:
+            khal = 0
             repetition = False
             values = ["upper", "lower"]
             probabilities = [0.6, 0.4]
@@ -171,10 +173,11 @@ class State:
             for i in throws_types:
                 if number_of_moves == i:
                     name_of_move = throws_types[i][0]
+                    khal = throws_types[i][1]
                     Khal += throws_types[i][1]
                     repetition = throws_types[i][2]
                     break
-            ans.append([number_of_moves, Khal, name_of_move])
+            ans.append([number_of_moves, khal, name_of_move])
         return ans, totalmoves, Khal
 
     # count the nmber of stones in the game for the player in that turn
@@ -194,7 +197,7 @@ class State:
         return num_of_stones, stones
 
     # this function is just a way to organize the order of the action in the game
-    def action(self, turn):
+    def action_solo(self, turn):
         throws_list, totalmoves, Khal = self.throwing()
         counter_of_id_throw_list = 0
         for i in throws_list:
@@ -230,6 +233,38 @@ class State:
                     # get the Khal move
                     throws_list.append([Khal, 0, "Gift from the KHAL"])
                     Khal = 0
+            num_of_stones, stones = self.number_of_stones(turn)
+            if num_of_stones > 0:
+                stone_id = int(input("Enter the id of stone to move"))
+                throw_index = int(input("Enter the id of the throw you want to take for this stone"))
+                throw = throws_list[throw_index]
+                number_of_moves = throw[0]
+                print(number_of_moves)
+                check = False
+                if turn == 0:
+                    check = self.get_move(stone_id, number_of_moves, self.my_path_list, self.enemy_path_list,
+                                          self.enemy_stones)
+                    self.create_board()
+                    print(check)
+                    if check:
+                        throws_list.pop(throw_index)
+                else:
+                    check = self.get_move(stone_id, number_of_moves, self.enemy_path_list, self.my_path_list,
+                                          self.my_stones)
+                    self.create_board()
+                    print(check)
+                    if check:
+                        throws_list.pop(throw_index)
+            else:
+                print("You don't have stones to move")
+                break
+
+    def action(self, turn):
+        throws_list, totalmoves, Khal = self.throwing()
+        # sort the throw list to for the next state
+        throws_list.sort(key=lambda x: x[1], reverse=True)
+        print(throws_list)
+        while len(throws_list) > 0:
             num_of_stones, stones = self.number_of_stones(turn)
             if num_of_stones > 0:
                 stone_id = int(input("Enter the id of stone to move"))
@@ -303,7 +338,7 @@ class State:
                         print("There is an stones of our enemy we will remove it")
                         check = self.remove_stone(enemy_path_list, i, enemy_stones)
                         self.move_stone(stone_id, old_place, new_place, my_path_list)
-                            # n,m = is the enemy place
+                        # n,m = is the enemy place
 
                         return True
                     else:
@@ -337,3 +372,34 @@ class State:
             enemy_stones.insert(stone.id, stone)
         enemy_path_list[enemy_place].stone_list = []
         return True
+
+    def get_next_state(self, throw_list, turn):
+        if len(throw_list) == 0:
+            return [self]
+        result = []
+        for throw in throw_list:
+            for i in range(83):
+                if turn == 0:
+                    stones = self.my_path_list[i].stone_list
+                    if len(stones) > 0:
+                        for stone in stones:
+                            new_state = copy.deepcopy(State(self.state))
+                            new_state.get_move(stone, throw_list[throw[0]], self.my_path_list, self.enemy_path_list,
+                                               self.enemy_stones)
+                            new_throw_list = copy.deepcopy(throw_list)
+                            new_throw_list.remove(throw)
+                            current = new_state.get_next_state(new_throw_list, turn)
+                            result = result + current
+                    else:
+                        stones = self.enemy_path_list[i].stone_list
+                        if len(stones) > 0:
+                            for stone in stones:
+                                new_state = copy.deepcopy(State(self.state))
+                                new_state.get_move(stone, throw_list[throw[0]], self.enemy_path_list, self.my_path_list,
+                                                   self.my_stones)
+                                new_throw_list = copy.deepcopy(throw_list)
+                                new_throw_list.remove(throw)
+                                current = new_state.get_next_state(new_throw_list, turn)
+                                result = result + current
+
+        return result
