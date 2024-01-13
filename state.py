@@ -3,7 +3,7 @@ import random
 from cell import Cell
 from getindex import getindex
 from stone import Stone
-from copy import deepcopy
+import math
 
 
 class State:
@@ -116,7 +116,7 @@ class State:
             else:
                 return False
 
-    # check if the game Has finsish with any player
+    # check if the game Has finish with any player
     def is_finish(self):
         if (len(self.my_path_list[83].stone_list) == 4) or (len(self.enemy_path_list[83].stone_list) == 4):
             return True
@@ -180,7 +180,25 @@ class State:
             ans.append([number_of_moves, khal, name_of_move])
         return ans, totalmoves, Khal
 
-    # count the nmber of stones in the game for the player in that turn
+    # حساب التوافيق
+    # C(n,r) = factorial(n)/(factorial(r) * factorial(n - r))
+    # To calculate the probablities of the throws(dast,banj,dwak,...)
+    # we will use Bernoulli's law of probability
+    # k will represnt the number of stones that will be in the (lower)face
+    # p_k = c(n,k) * p^k * q^(n-k)
+    # c is the combinations (توافيق)
+    # n is the number of the stones (6)
+    # k is the number of stones I want to get lower
+    # p_k is the probability
+    @staticmethod
+    def Get_possible_throws():
+        possible_throws = []
+        for k in range(0, 7):
+            p_k = (math.factorial(6) / (math.factorial(k) * math.factorial(6 - k))) * pow(0.4, k) * pow(0.6, (6 - k))
+            possible_throws.append(p_k)
+        return possible_throws
+
+    # count the number of stones in the game for the player in that turn
     def number_of_stones(self, turn):
         num_of_stones = 0
         stones = []

@@ -1,7 +1,6 @@
 from board_evaluate import BoardEvaluate
 from state import State
 
-
 def evaluate(state, side):
     if side == 'me':
         counter = 0
