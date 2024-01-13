@@ -6,7 +6,8 @@ from stone import Stone
 import math
 
 
-def initialize_game(my_path_list, enemy_path_list, my_stones, enemy_stones):
+# initialize the states outside the class
+def initialize_first_state(my_path_list, enemy_path_list, my_stones, enemy_stones):
     for i in range(84):
         my_path_list.append(Cell(stone_list=[]))
         enemy_path_list.append(Cell(stone_list=[]))
@@ -31,8 +32,10 @@ class State:
         self.enemy_path_list = state[1]
         self.my_stones = state[2]
         self.enemy_stones = state[3]
+        # for printing the path {not use this time}
         self.parent = ""
 
+    # initialize the states from the class
     def initialize_game(self):
         for i in range(84):
             self.my_path_list.append(Cell(stone_list=[]))
@@ -308,6 +311,13 @@ class State:
         throws_list.sort(key=lambda x: x[1], reverse=True)
         print(throws_list)
         num_of_stones, stones = self.number_of_stones(turn)
+        # we will change the throw list to try to put all the stones from stone list (the stone that outside the game) to be in the game or it will have move with value 1
+        for throw in throws_list:
+            # if this throw has a khal we will add throw as a normal throw
+            if throw[1] == 1:
+                throws_list.append([1, 0, "Khal"])
+                throw[1] = 0
+
         if turn == 0:
             states = self.get_next_state(throws_list, turn)
         else:
@@ -429,15 +439,21 @@ class State:
                             current = new_state.get_next_state(new_throw_list, turn)
                             result = result + current
                     else:
-                        stones = self.enemy_path_list[i].stone_list
-                        if len(stones) > 0:
-                            for stone in stones:
-                                new_state = copy.deepcopy(State(self.state))
-                                new_state.get_move(stone, throw_list[throw[0]], self.enemy_path_list, self.my_path_list,
-                                                   self.my_stones, turn)
-                                new_throw_list = copy.deepcopy(throw_list)
-                                new_throw_list.remove(throw)
-                                current = new_state.get_next_state(new_throw_list, turn)
-                                result = result + current
+                        if throw[0] == 1 and len(self.my_stones) > 0:
+                            self.add_stone(turn)
+                else:
+                    stones = self.enemy_path_list[i].stone_list
+                    if len(stones) > 0:
+                        for stone in stones:
+                            new_state = copy.deepcopy(State(self.state))
+                            new_state.get_move(stone, throw_list[throw[0]], self.enemy_path_list, self.my_path_list,
+                                               self.my_stones, turn)
+                            new_throw_list = copy.deepcopy(throw_list)
+                            new_throw_list.remove(throw)
+                            current = new_state.get_next_state(new_throw_list, turn)
+                            result = result + current
+                    else:
+                        if throw[0] == 1 and len(self.my_stones) > 0:
+                            self.add_stone(turn)
 
         return result

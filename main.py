@@ -1,6 +1,6 @@
 import solo_game
 from expect_minimax import play_game_computer
-from state import State, initialize_game
+from state import State, initialize_first_state
 from solo_game import play_game
 
 print("Welcome to play Parsis game")
@@ -8,7 +8,7 @@ my_path_list = []
 enemy_path_list = []
 my_stones = []
 enemy_stones = []
-my_path_list, enemy_path_list, my_stones, enemy_stones = initialize_game(my_path_list, enemy_path_list, my_stones, enemy_stones)
+my_path_list, enemy_path_list, my_stones, enemy_stones = initialize_first_state(my_path_list, enemy_path_list, my_stones, enemy_stones)
 first_state = [my_path_list, enemy_path_list, my_stones, enemy_stones]
 st = State(first_state)
 st.create_board()
