@@ -333,8 +333,6 @@ class State:
                     if stone.id == stone_id:
                         old_place = i
                         break
-            # else:
-            #     continue
         new_place = old_place + number_of_moves
         if new_place >= 83:
             new_place = 83
@@ -382,7 +380,6 @@ class State:
                 print("it's clear")
                 self.move_stone(stone_id, old_place, new_place, my_path_list, turn)
                 return True
-
         return False
 
     # move stone from cell to another cell
@@ -404,7 +401,6 @@ class State:
         return True
 
     # remove stone from the cell
-    # هاد التابع ابن الستين كلب
     def remove_stone(self, enemy_path_list, enemy_place, enemy_stones, turn):
         stones = enemy_path_list[enemy_place].stone_list
         for stone in stones:
